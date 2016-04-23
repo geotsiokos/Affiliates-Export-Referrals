@@ -51,49 +51,70 @@ class AffiliatesExport {
 		
 		$affiliates = $affiliates_db->get_objects( "SELECT * FROM " . $aff_table . " WHERE status='" . $status . "'");
 		
-		if ( count($affiliates) ) {
+		if ( count( $affiliates ) ) {
 			$output = "";
 			$sep = "\t";
-			foreach ($affiliates as $affiliate) {
+			foreach ( $affiliates as $affiliate ) {
 				
-				if ( $userid = affiliates_get_affiliate_user( $affiliate->affiliate_id ) ) {
+				if ( $user_id = affiliates_get_affiliate_user( $affiliate->affiliate_id ) ) {
+					// User Data 
+					if ( get_userdata ( $user_id ) ) {
+						$user_info = get_userdata( $user_id );
+					}
+					
+					$firstname = get_user_meta( $user_id, "billing_first_name", true );
+					if ( $firstname == "" ) {
+						$firstname = $user_info->first_name;
+					}
+					
+					$lastname = get_user_meta( $user_id, "billing_last_name", true );
+					if ( $lastname == "" ) {
+						$lastname = $user_info->last_name;
+					}					
+					
 					// Referrals
-					$referrals = self::get_affiliate_referrals($affiliate->affiliate_id, $from_date, $thru_date);
+					$referrals = self::get_affiliate_referrals( $affiliate->affiliate_id, $from_date, $thru_date);
 					
 					$amount = 0;
-					if ( count($referrals) > 0 ) {
+					if ( count( $referrals ) != 0 ) {
 						foreach ( $referrals as $referral ) {
-							if ($referral->amount != null)
-								$amount += $referral->amount;
-						}
-					}
-					// user data
-					$user_info = get_userdata($user_id);
-					
-					$firstname = get_user_meta( $userid, "billing_first_name", true );
-					if ($firstname=="") $firstname="-";
-						
-					$lastname = get_user_meta( $userid, "billing_last_name", true );
-					if ($lastname=="") $lastname="-";
-						
-					$add1 = get_user_meta( $userid, "billing_address_1", true );
-					if ($add1=="") $add1="-";
-						
-					$add2 = get_user_meta( $userid, "billing_address_2", true );
-					if ($add2=="") $add2="-";
-						
-					$country = get_user_meta( $userid, "billing_country", true );
-					if ($country=="") $country="-";
-						
-					$output .=  $firstname . $sep . $lastname . $sep . $amount;
-					$output .= $sep . $country . $sep . $add1 . $sep . $add2;
-					$output .= "\n";
-				
+							if ( $referral->amount > 0.00000 ) {
+								
+								$amount = $referral->amount;
+								$currency = $referral->currency_id;
+								
+								// order data
+								if ( $referral->type == "sale" ) {
+									$order_id = $referral->post_id;
+									$order = new WC_Order( $order_id );
+									$customer_firstname = $order->billing_first_name;
+									$customer_lastname = $order->billing_last_name;
+									if ( sizeof( $order->get_items() ) > 0 ) {
+										foreach( $order->get_items() as $item ) {
+											$product_list[] = $item['name'];
+										}
+										$product_names = implode( ',', $product_list );
+										
+									} 
+								}
+								$product_list = array();
+								
+								$output .= "Referrals for affiliate id " . $affiliate->affiliate_id . "\n" ;
+								$output .= $firstname . $sep . $lastname . $sep . $amount;
+								$output .= $sep . $currency;
+								$output .= $sep . $customer_firstname . $sep . $customer_lastname;
+								$output .= $sep . $product_names;
+								$output .= "\n" . "\n";
+							}
+						}						
+					} else {
+						echo __( "There are no referrals recorded yet", AFFILIATESEXPORT_DOMAIN );
+					}				
 				}
 			}
 			echo $output;
 		} else {
-			echo __("There isn't affiliates ", AFFILIATESEXPORT_DOMAIN);
+			echo __( "There are no affiliates available", AFFILIATESEXPORT_DOMAIN );
 		}
 		
 	}	

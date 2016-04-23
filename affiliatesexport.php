@@ -105,7 +105,7 @@ class AffiliatesExport_Plugin {
 		
 	}
 	
-	function admin_print_styles() {
+	public static function admin_print_styles() {
 		wp_enqueue_style( 'smoothness' );
 	}
 	
@@ -186,7 +186,7 @@ class AffiliatesExport_Plugin {
 	    settings_fields( 'affiliatesexport-settings' ); ?>
 	    
 	</form>
-	<span class="description">File structure: billing_firstname | billing_lastname | amount | country_code | billing_address_1 | billing_address_2</span>
+	<span class="description">File structure: affiliate_firstname | affiliate_lastname | amount | currency | customer_firstname | customer_lastname | product(s)</span>
 	</br>
 	<span class="description">Fields separated by tabulator. Affiliates separated by enter.</span>
 	</br>
