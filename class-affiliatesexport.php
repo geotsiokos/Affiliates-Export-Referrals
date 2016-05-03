@@ -39,7 +39,7 @@ class AffiliatesExport {
 		}
 		$hora = date( 'Y-m-d-H-i-s', time() );
 		
-		header( "Content-Disposition: attachment; filename=\"affiliates-export-$hora.txt\"" );
+		header( "Content-Disposition: attachment; filename=\"affiliates-export-$hora.xls\"" );
 
 		$from_date = get_option("affexp_from_date", null);
 		$thru_date = get_option("affexp_thru_date", null);
@@ -52,8 +52,9 @@ class AffiliatesExport {
 		$affiliates = $affiliates_db->get_objects( "SELECT * FROM " . $aff_table . " WHERE status='" . $status . "'");
 		
 		if ( count( $affiliates ) ) {
-			$output = "";
 			$sep = "\t";
+			$output = "Firstname" . $sep . "Lastname" . $sep . "Amount" . $sep . "Currency" . $sep . "Customer firstname" . $sep . "Customer Lastname" . $sep . "Product(s)";
+			$output .= "\n";
 			foreach ( $affiliates as $affiliate ) {
 				
 				if ( $user_id = affiliates_get_affiliate_user( $affiliate->affiliate_id ) ) {
@@ -107,9 +108,9 @@ class AffiliatesExport {
 								$output .= "\n" . "\n";
 							}
 						}						
-					} else {
-						echo __( "There are no referrals recorded yet", AFFILIATESEXPORT_DOMAIN );
-					}				
+					} //else {
+						//echo __( "There are no referrals recorded yet", AFFILIATESEXPORT_DOMAIN );
+					//}				
 				}
 			}
 			echo $output;
